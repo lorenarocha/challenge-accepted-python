@@ -28,18 +28,14 @@ def rename_vars(ds1, ds2):
         ds2 (Dataset): forecast.nc
 
     Returns:
-        Dataset: retorna o forecast.nc alterado, porém
-        é necessária aplicá-la a variável 'forecast' 
-        para sobrepor o nome da variável
+        Dataset: retorna o observation.nc e forecast.nc alterados,
+        porém é necessário colocar o nome da nova variável 
     """
-    if ds1.data_vars.items() == ds2.data_vars.items():
-        pass
-    else:
-        for var1, i in ds1.data_vars.items():
-            for var2, j in ds2.data_vars.items():
-                ds2 = ds2.rename({f'{var2}': f'{var1}'})
-    return ds2
-
+    for var1, i in ds1.data_vars.items():
+        for var2, j in ds2.data_vars.items():
+            ds1 = ds1.rename({f'{var1}': 'observation'})
+            ds2 = ds2.rename({f'{var2}': 'forecast'})
+    return ds1, ds2
 
 def equal_coords(ds1, ds2):
     """Ao analisar os arquivos, observa-se que
@@ -69,11 +65,11 @@ def kelvin2celsius(ds1, ds2):
         ds2 (Dataset): forecast.nc
     """
     if ds1 >= 273.15 == True:
-        ds1['temperatura'] = ds1['temperatura'] - 273.15
+        ds1['observation'] = ds1['observation'] - 273.15
     else:
         print('Os valores do primeiro arquivo estão em °C')
     if ds2.__ge__(273.15) == True:
-        ds2['temperatura'] = ds2['temperatura'] - 273.15
+        ds2['forecast'] = ds2['forecast'] - 273.15
     else:
         print('Os valores do segundo arquivo estão em °C')
 
@@ -90,16 +86,15 @@ def output_rmse_6h(ds1, ds2):
     Returns:
         Dataset: variável com o RMSE a cada 6 horas
     """
-    ds1_6h = ds1.resample(time='6h').mean()
-    ds2_6h = ds2.resample(time='6h').mean()
-    rmse_6h = rmse(ds1_6h, ds2_6h, dim='time').\
-        assign_coords(time=(ds1_6h['time'])).\
-        rename_vars({'temperatura': 'rmse'})
+    df = xr.merge([ds1, ds2])
+    rmse_6h = df.resample(time='6h').\
+        apply(lambda x: rmse(x['observation'], x['forecast'],\
+            dim='time')).rename('rmse')
     
     print('Gerando output .nc')
     rmse_6h.to_netcdf('RMSE_6hourly.nc', 'w')
     
-    return rmse_6h
+    return rmse_6h 
 
 
 # processing data
@@ -109,7 +104,7 @@ forecast = import_data('forecast.nc')
 print('observation', observation.dims)
 print('forecast', forecast.dims)
 
-forecast = rename_vars(observation, forecast)
+observation, forecast = rename_vars(observation, forecast)
 
 equal_coords(observation, forecast)
 
@@ -117,3 +112,4 @@ kelvin2celsius(observation, forecast)
 
 rmse_6h = output_rmse_6h(observation, forecast)
 print(rmse_6h.values)
+
