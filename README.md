@@ -60,9 +60,10 @@ O código está dividido por blocos que:
     <img src="https://media-exp1.licdn.com/dms/image/C5612AQF8JAeUs7CwCQ/article-inline_image-shrink_1000_1488/0/1543435697122?e=1649289600&v=beta&t=AEoZzW08votOCHB5v12lFAroXSdcBXfcyiCfY3hNfxE" alt="RMSE"/> 
 </p>
 
+- Plot da série temporal contendo temperatura do ar observada, prevista e o RMSE calculado a cada 6 horas para a capital
+
 O projeto ainda está em desenvolvimento e as próximas atualizações serão:
 - Criação de campos espaciais de cada intervalo com os valores de RMSE para o estado de São Paulo
-- Plot da série temporal contendo temperatura do ar observada, prevista e o RMSE para a capital
 
 ## Execução
 
